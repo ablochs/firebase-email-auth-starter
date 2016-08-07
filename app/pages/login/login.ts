@@ -1,30 +1,25 @@
 import {Component} from '@angular/core';
-import {NavController, Loading, Alert} from 'ionic-angular';
-import {FormBuilder, Validators} from '@angular/common';
+import {NavController, LoadingController, AlertController} from 'ionic-angular';
+import {FormGroup, FormControl, Validators, FormBuilder, REACTIVE_FORM_DIRECTIVES} from '@angular/forms';
 import {AuthData} from '../../providers/auth-data/auth-data';
 import {SignupPage} from '../signup/signup';
 import {TabsPage} from '../tabs/tabs';
 import {ResetPasswordPage} from '../reset-password/reset-password';
 
-/*
-  Generated class for the LoginPage page.
-
-  See http://ionicframework.com/docs/v2/components/#navigation for more info on
-  Ionic pages and navigation.
-*/
 @Component({
   templateUrl: 'build/pages/login/login.html',
-  providers: [AuthData]
+  providers: [AuthData],
+  directives: [REACTIVE_FORM_DIRECTIVES],
 })
 export class LoginPage {
-  public loginForm: any;
+  public loginForm: FormGroup;
 
 
-  constructor(public nav: NavController, public authData: AuthData, public formBuilder: FormBuilder) {
+  constructor(public nav: NavController, public authData: AuthData, public formBuilder: FormBuilder, public alertCtrl: AlertController, public loadingCtrl: LoadingController) {
     this.nav = nav;
     this.authData = authData;
 
-    this.loginForm = formBuilder.group({
+    this.loginForm = this.formBuilder.group({
       email: ['', Validators.required],
       password: ['', Validators.required]
     })
@@ -35,16 +30,16 @@ export class LoginPage {
     this.authData.loginUser(this.loginForm.value.email, this.loginForm.value.password).then((authData) => {
       this.nav.popToRoot();
     }, (error) => {
-        let prompt = Alert.create({
+        let prompt = this.alertCtrl.create({
           message: error.message,
           buttons: [{text: "Ok"}]
         });
-        this.nav.present(prompt);
+        prompt.present();
     });
-    let loading = Loading.create({
+    let loading = this.loadingCtrl.create({
       dismissOnPageChange: true,
     });
-    this.nav.present(loading);
+    loading.present();
   }
 
   goToSignup(){

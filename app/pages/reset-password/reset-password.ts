@@ -1,35 +1,44 @@
-import {NavController, Loading, Alert} from 'ionic-angular';
+import {NavController, LoadingController, AlertController} from 'ionic-angular';
 import {Component} from '@angular/core';
-import {FormBuilder, Validators} from '@angular/common';
+import {FormGroup, FormControl, Validators, FormBuilder, REACTIVE_FORM_DIRECTIVES} from '@angular/forms';
 import {AuthData} from '../../providers/auth-data/auth-data';
 import {LoginPage} from '../login/login';
 
 @Component({
   templateUrl: 'build/pages/reset-password/reset-password.html',
-  providers: [AuthData]
+  providers: [AuthData],
+  directives: [REACTIVE_FORM_DIRECTIVES]
 })
 export class ResetPasswordPage {
-  public resetPasswordForm: any;
+  public resetPasswordForm: FormGroup;
+  public loading: any;
 
-
-  constructor(public authData: AuthData, public formBuilder: FormBuilder, public nav: NavController) {
+  constructor(public authData: AuthData, public formBuilder: FormBuilder, public nav: NavController, public alertCtrl: AlertController, public loadingCtrl: LoadingController) {
     this.authData = authData;
 
-    this.resetPasswordForm = formBuilder.group({
+    this.resetPasswordForm = this.formBuilder.group({
       email: ['', Validators.required],
     })
+
+    this.loading = this.loadingCtrl.create();
   }
 
   resetPassword(event){
     event.preventDefault();
     this.authData.resetPassword(this.resetPasswordForm.value.email).then((user) => {
-      let prompt = Alert.create({
+      this.loading.dismiss();
+      let prompt = this.alertCtrl.create({
         message: "We just sent you a reset link to your email",
-        buttons: [{text: "Ok"}]
+        buttons: [{
+          text: "Ok",
+          handler: () => {
+            this.nav.pop();
+          }
+        }]
       });
-      this.nav.present(prompt);
-
+      prompt.present();
     }, (error) => {
+      this.loading.dismiss();
       var errorMessage: string;
       switch (error.code) {
         case "auth/invalid-email":
@@ -41,18 +50,12 @@ export class ResetPasswordPage {
         default:
           errorMessage = error.message;
       }
-
-      let prompt = Alert.create({
+      let prompt = this.alertCtrl.create({
         message: errorMessage,
         buttons: [{text: "Ok"}]
       });
-
-      this.nav.present(prompt);
+      prompt.present();
     });
-    let loading = Loading.create({
-      dismissOnPageChange: true,
-    });
-    this.nav.present(loading);
+    this.loading.present();
   }
-
 }
