@@ -52,24 +52,23 @@ export class LoginPage {
     let loading = this.loadingCtrl.create();
     loading.present();
     this.authData.loginUserSocial(provider).then((authData) => {
-      this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
-        loading.onDidDismiss(() => {
-          this.user = userData.val();
-          if(this.user) {
-            this.authData.userProfile.child(authData.user.uid).update({
-              email: authData.user.email
-            });
-          }else{
-            this.authData.userProfile.child(authData.user.uid).set({
-              email: authData.user.email,
-              name: authData.user.displayName,
-              photoUrl: authData.user.photoURL
-            });
-          }
+      loading.onDidDismiss(() => {
+        this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
+            this.user = userData.val();
+            if(this.user) {
+              this.authData.userProfile.child(authData.user.uid).update({
+                email: authData.user.email
+              });
+            }else{
+              this.authData.userProfile.child(authData.user.uid).set({
+                email: authData.user.email,
+                name: authData.user.displayName,
+                photoUrl: authData.user.photoURL
+              });
+            }
         });
-        loading.dismiss();
       });
-      this.nav.popToRoot();
+      loading.dismiss();
     }, (error) => {
       loading.onDidDismiss(() => {
         let prompt = this.alertCtrl.create({
