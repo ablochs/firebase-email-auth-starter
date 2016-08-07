@@ -39,7 +39,7 @@ export class AuthData {
         authProvider.addScope("user");
         break;
     }
-    return this.fireAuth.signInWithPopup(authProvider);
+    return this.fireAuth.signInWithRedirect(authProvider);
   }
 
   signupUser(email: string, password: string): any {
