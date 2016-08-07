@@ -1,6 +1,6 @@
-import {NavController, Loading, Alert} from 'ionic-angular';
+import {NavController, LoadingController, AlertController} from 'ionic-angular';
 import {Component} from '@angular/core';
-import {FormBuilder, Validators} from '@angular/common';
+import {FormGroup, FormControl, Validators, FormBuilder, REACTIVE_FORM_DIRECTIVES} from '@angular/forms';
 import {AuthData} from '../../providers/auth-data/auth-data';
 import {TabsPage} from '../tabs/tabs';
 
@@ -12,11 +12,11 @@ export class SignupPage {
   public signupForm: any;
 
 
-  constructor(public nav: NavController, public authData: AuthData, public formBuilder: FormBuilder) {
+  constructor(public nav: NavController, public authData: AuthData, public formBuilder: FormBuilder, public alertCtrl: AlertController, public loadingCtrl: LoadingController) {
     this.nav = nav;
     this.authData = authData;
 
-    this.signupForm = formBuilder.group({
+    this.signupForm = this.formBuilder.group({
       email: ['', Validators.required],
       password: ['', Validators.required]
     })
@@ -24,26 +24,29 @@ export class SignupPage {
 
   signupUser(event){
     event.preventDefault();
+    let loading = this.loadingCtrl.create();
+    loading.present();
     this.authData.signupUser(this.signupForm.value.email, this.signupForm.value.password).then((newUser) => {
-      this.authData.fireAuth.signInWithEmailAndPassword(this.signupForm.value.email, this.signupForm.value.password).then((authenticatedUser) => {
-        this.authData.userProfile.child(authenticatedUser.uid).set({
-          email: this.signupForm.value.email
-        }).then(() => {
-          this.nav.setRoot(TabsPage);
+      loading.onDidDismiss(() => {
+        this.authData.fireAuth.signInWithEmailAndPassword(this.signupForm.value.email, this.signupForm.value.password).then((authenticatedUser) => {
+          this.authData.userProfile.child(authenticatedUser.uid).set({
+            email: this.signupForm.value.email
+          }).then(() => {
+            this.nav.setRoot(TabsPage);
+          });
         });
-
-      })
+      });
+      loading.dismiss();
     }, (error) => {
-      var errorMessage: string = error.message;
-        let prompt = Alert.create({
+      loading.onDidDismiss(() => {
+        var errorMessage: string = error.message;
+        let prompt = this.alertCtrl.create({
           message: errorMessage,
           buttons: [{text: "Ok"}]
         });
-        this.nav.present(prompt);
+        prompt.present();
+      });
+      loading.dismiss();
     });
-    let loading = Loading.create({
-      dismissOnPageChange: true,
-    });
-    this.nav.present(loading);
   }
 }

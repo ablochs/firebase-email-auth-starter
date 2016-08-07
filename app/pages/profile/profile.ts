@@ -1,4 +1,4 @@
-import { NavController, Alert } from 'ionic-angular';
+import { NavController, AlertController } from 'ionic-angular';
 import { Component } from '@angular/core';
 import { ProfileData } from '../../providers/profile-data/profile-data';
 import { AuthData } from '../../providers/auth-data/auth-data';
@@ -12,7 +12,7 @@ export class ProfilePage {
   public userProfile: any;
   public birthDate: string;
 
-  constructor(public nav: NavController, public profileData: ProfileData, public authData: AuthData) {
+  constructor(public nav: NavController, public profileData: ProfileData, public authData: AuthData, public alertCtrl: AlertController) {
     this.nav = nav;
     this.profileData = profileData;
 
@@ -30,7 +30,7 @@ export class ProfilePage {
   }
 
   updateName(){
-    let prompt = Alert.create({
+    let prompt = this.alertCtrl.create({
       message: "Your name",
       inputs: [
         {
@@ -51,7 +51,7 @@ export class ProfilePage {
         }
       ]
     });
-    this.nav.present(prompt);
+    prompt.present();
   }
 
   updateDOB(birthDate){
@@ -59,7 +59,7 @@ export class ProfilePage {
   }
 
   updateEmail(){
-  let prompt = Alert.create({
+  let prompt = this.alertCtrl.create({
     inputs: [
       {
         name: 'newEmail',
@@ -78,11 +78,11 @@ export class ProfilePage {
       }
     ]
   });
-  this.nav.present(prompt);
+  prompt.present();
 }
 
   updatePassword(){
-    let prompt = Alert.create({
+    let prompt = this.alertCtrl.create({
       inputs: [
         {
           name: 'newPassword',
@@ -102,7 +102,7 @@ export class ProfilePage {
         }
       ]
     });
-    this.nav.present(prompt);
+    prompt.present();
   }
 
 }

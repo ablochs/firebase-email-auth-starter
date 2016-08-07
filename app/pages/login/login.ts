@@ -1,32 +1,27 @@
 import {Component} from '@angular/core';
-import {NavController, Loading, Alert} from 'ionic-angular';
-import {FormBuilder, Validators} from '@angular/common';
+import {NavController, LoadingController, AlertController} from 'ionic-angular';
+import {FormGroup, FormControl, Validators, FormBuilder, REACTIVE_FORM_DIRECTIVES} from '@angular/forms';
 import {AuthData} from '../../providers/auth-data/auth-data';
 import {ProfileData} from '../../providers/profile-data/profile-data';
 import {SignupPage} from '../signup/signup';
 import {TabsPage} from '../tabs/tabs';
 import {ResetPasswordPage} from '../reset-password/reset-password';
 
-/*
-  Generated class for the LoginPage page.
-
-  See http://ionicframework.com/docs/v2/components/#navigation for more info on
-  Ionic pages and navigation.
-*/
 @Component({
   templateUrl: 'build/pages/login/login.html',
-  providers: [AuthData, ProfileData]
+  providers: [AuthData, ProfileData],
+  directives: [REACTIVE_FORM_DIRECTIVES],
 })
 export class LoginPage {
-  public loginForm: any;
+  public loginForm: FormGroup;
   public user: any;
 
+  constructor(public nav: NavController, public authData: AuthData, public profileData: ProfileData, public formBuilder: FormBuilder, public alertCtrl: AlertController, public loadingCtrl: LoadingController) {
 
-  constructor(public nav: NavController, public authData: AuthData, public formBuilder: FormBuilder, public profileData: ProfileData) {
     this.nav = nav;
     this.authData = authData;
 
-    this.loginForm = formBuilder.group({
+    this.loginForm = this.formBuilder.group({
       email: ['', Validators.required],
       password: ['', Validators.required]
     })
@@ -34,19 +29,57 @@ export class LoginPage {
 
   loginUser(event){
     event.preventDefault();
+    let loading = this.loadingCtrl.create();
+    loading.present();
     this.authData.loginUser(this.loginForm.value.email, this.loginForm.value.password).then((authData) => {
-      this.nav.popToRoot();
+      loading.onDidDismiss(() => {
+        this.nav.popToRoot();
+      });
+      loading.dismiss();
     }, (error) => {
-        let prompt = Alert.create({
+      loading.onDidDismiss(() => {
+        let prompt = this.alertCtrl.create({
           message: error.message,
           buttons: [{text: "Ok"}]
         });
-        this.nav.present(prompt);
+        prompt.present();
+      });
+      loading.dismiss();
     });
-    let loading = Loading.create({
-      dismissOnPageChange: true,
+  }
+
+  loginUserSocial(event, provider) {
+    event.preventDefault();
+    let loading = this.loadingCtrl.create();
+    loading.present();
+    this.authData.loginUserSocial(provider).then((authData) => {
+      loading.onDidDismiss(() => {
+        this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
+            this.user = userData.val();
+            if(this.user) {
+              this.authData.userProfile.child(authData.user.uid).update({
+                email: authData.user.email
+              });
+            }else{
+              this.authData.userProfile.child(authData.user.uid).set({
+                email: authData.user.email,
+                name: authData.user.displayName,
+                photoUrl: authData.user.photoURL
+              });
+            }
+        });
+      });
+      loading.dismiss();
+    }, (error) => {
+      loading.onDidDismiss(() => {
+        let prompt = this.alertCtrl.create({
+          message: error.message,
+          buttons: [{text: "Ok"}]
+        });
+        prompt.present();
+      });
+      loading.dismiss();
     });
-    this.nav.present(loading);
   }
 
   loginUserSocial(event, provider) {

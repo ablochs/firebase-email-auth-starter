@@ -1,5 +1,8 @@
 import {Injectable} from '@angular/core';
-import {Storage, LocalStorage} from 'ionic-angular';
+import {NavController, Alert} from 'ionic-angular';
+import {HomePage} from '../../pages/home/home';
+import {LoginPage} from '../../pages/login/login';
+import {TabsPage} from '../../pages/tabs/tabs';
 import * as firebase from 'firebase';
 
 @Injectable()
@@ -7,9 +10,8 @@ export class AuthData {
   public fireAuth: any;
   public userProfile: any;
   local: Storage;
-  public user: any;
 
-  constructor() {
+  constructor(public nav: NavController) {
 
     this.fireAuth = firebase.auth();
     this.userProfile = firebase.database().ref('/userProfile');
