@@ -31,6 +31,9 @@ export class LoginPage {
     let loading = this.loadingCtrl.create();
     loading.present();
     this.authData.loginUser(this.loginForm.value.email, this.loginForm.value.password).then((authData) => {
+      loading.onDidDismiss(() => {
+        this.nav.popToRoot();
+      });
       loading.dismiss();
     }, (error) => {
       loading.onDidDismiss(() => {
@@ -48,9 +51,9 @@ export class LoginPage {
     event.preventDefault();
     let loading = this.loadingCtrl.create();
     loading.present();
-    this.authData.loginUserSocial(provider);
-    this.authData.fireAuth.getRedirectResult().then((authData) => {
-        this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
+    this.authData.loginUserSocial(provider).then((authData) => {
+      this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
+        loading.onDidDismiss(() => {
           this.user = userData.val();
           if(this.user) {
             this.authData.userProfile.child(authData.user.uid).update({
@@ -63,14 +66,10 @@ export class LoginPage {
               photoUrl: authData.user.photoURL
             });
           }
-        }, (error) => {
-          let prompt = this.alertCtrl.create({
-            message: error.message,
-            buttons: [{text: "Ok"}]
-          });
-          prompt.present();
         });
         loading.dismiss();
+      });
+      this.nav.popToRoot();
     }, (error) => {
       loading.onDidDismiss(() => {
         let prompt = this.alertCtrl.create({
