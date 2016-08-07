@@ -24,27 +24,30 @@ export class SignupPage {
 
   signupUser(event){
     event.preventDefault();
+    let loading = this.loadingCtrl.create();
+    loading.present();
     this.authData.signupUser(this.signupForm.value.email, this.signupForm.value.password).then((newUser) => {
-      loading.dismiss();
-      this.authData.fireAuth.signInWithEmailAndPassword(this.signupForm.value.email, this.signupForm.value.password).then((authenticatedUser) => {
-        this.authData.userProfile.child(authenticatedUser.uid).set({
-          email: this.signupForm.value.email
-        }).then(() => {
-          this.nav.setRoot(TabsPage);
+      loading.onDidDismiss(() => {
+        this.authData.fireAuth.signInWithEmailAndPassword(this.signupForm.value.email, this.signupForm.value.password).then((authenticatedUser) => {
+          this.authData.userProfile.child(authenticatedUser.uid).set({
+            email: this.signupForm.value.email
+          }).then(() => {
+            this.nav.setRoot(TabsPage);
+          });
         });
-
-      })
-    }, (error) => {
+      });
       loading.dismiss();
-      var errorMessage: string = error.message;
+    }, (error) => {
+      loading.onDidDismiss(() => {
+        var errorMessage: string = error.message;
         let prompt = this.alertCtrl.create({
           message: errorMessage,
           buttons: [{text: "Ok"}]
         });
         prompt.present();
+      });
+      loading.dismiss();
     });
-    let loading = this.loadingCtrl.create();
-    loading.present();
   }
 
 }

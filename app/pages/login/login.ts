@@ -27,19 +27,23 @@ export class LoginPage {
 
   loginUser(event){
     event.preventDefault();
+    let loading = this.loadingCtrl.create();
+    loading.present();
     this.authData.loginUser(this.loginForm.value.email, this.loginForm.value.password).then((authData) => {
-      this.nav.popToRoot();
+      loading.onDidDismiss(() => {
+        this.nav.popToRoot();
+      });
+      loading.dismiss();
     }, (error) => {
+      loading.onDidDismiss(() => {
         let prompt = this.alertCtrl.create({
           message: error.message,
           buttons: [{text: "Ok"}]
         });
         prompt.present();
+      });
+      loading.dismiss();
     });
-    let loading = this.loadingCtrl.create({
-      dismissOnPageChange: true,
-    });
-    loading.present();
   }
 
   goToSignup(){
