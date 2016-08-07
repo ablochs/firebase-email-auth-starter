@@ -49,5 +49,4 @@ export class SignupPage {
       loading.dismiss();
     });
   }
-
 }

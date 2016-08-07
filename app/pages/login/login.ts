@@ -17,6 +17,7 @@ export class LoginPage {
   public user: any;
 
   constructor(public nav: NavController, public authData: AuthData, public profileData: ProfileData, public formBuilder: FormBuilder, public alertCtrl: AlertController, public loadingCtrl: LoadingController) {
+
     this.nav = nav;
     this.authData = authData;
 
@@ -79,6 +80,37 @@ export class LoginPage {
       });
       loading.dismiss();
     });
+  }
+
+  loginUserSocial(event, provider) {
+    event.preventDefault();
+    this.authData.loginUserSocial(provider).then((authData) => {
+      this.profileData.getUserProfileByLink(authData.user.uid).once('value').then((userData) => {
+        this.user = userData.val();
+        if(this.user) {
+          this.authData.userProfile.child(authData.user.uid).update({
+            email: authData.user.email
+          });
+        }else{
+          this.authData.userProfile.child(authData.user.uid).set({
+            email: authData.user.email,
+            name: authData.user.displayName,
+            photoUrl: authData.user.photoURL
+          });
+        }
+      });
+      this.nav.popToRoot();
+    }, (error) => {
+        let prompt = Alert.create({
+          message: error.message,
+          buttons: [{text: "Ok"}]
+        });
+        this.nav.present(prompt);
+    });
+    let loading = Loading.create({
+      dismissOnPageChange: true,
+    });
+    this.nav.present(loading);
   }
 
   goToSignup(){
